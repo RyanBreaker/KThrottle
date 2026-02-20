@@ -37,8 +37,8 @@ fun App(viewModel: WiThrottleViewModel = viewModel { WiThrottleViewModel() }) {
         val isConnected by viewModel.isConnected.collectAsState()
         val host by viewModel.host.collectAsState()
         val port by viewModel.port.collectAsState()
-        val status by viewModel.status.collectAsState()
         val roster by viewModel.roster.collectAsState()
+        val trackStatus by viewModel.trackStatus.collectAsState()
 
         Column(
             modifier = Modifier
@@ -75,7 +75,8 @@ fun App(viewModel: WiThrottleViewModel = viewModel { WiThrottleViewModel() }) {
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Status: $status", style = MaterialTheme.typography.bodyLarge)
+            Text("Status: ${if (isConnected) "Connected" else "Disconnected"}", style = MaterialTheme.typography.bodyLarge)
+            Text("Track Power: $trackStatus", style = MaterialTheme.typography.bodyLarge)
 
             if (isConnected) {
                 var locoAddress by remember { mutableStateOf("") }
