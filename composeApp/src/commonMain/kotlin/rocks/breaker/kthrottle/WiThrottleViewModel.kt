@@ -1,21 +1,23 @@
-package rocks.breaker.jmri_throttle
+package rocks.breaker.kthrottle
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class WiThrottleViewModel : ViewModel() {
     private val client = WiThrottleClient(viewModelScope)
-    
+
     val isConnected = client.isConnected
-    
+
     private val _host = MutableStateFlow("127.0.0.1")
     val host: StateFlow<String> = _host.asStateFlow()
-    
+
     private val _port = MutableStateFlow("12090")
     val port: StateFlow<String> = _port.asStateFlow()
-    
+
     private val _status = MutableStateFlow("Disconnected")
     val status: StateFlow<String> = _status.asStateFlow()
 
@@ -30,8 +32,13 @@ class WiThrottleViewModel : ViewModel() {
         }
     }
 
-    fun setHost(value: String) { _host.value = value }
-    fun setPort(value: String) { _port.value = value }
+    fun setHost(value: String) {
+        _host.value = value
+    }
+
+    fun setPort(value: String) {
+        _port.value = value
+    }
 
     fun connect() {
         viewModelScope.launch {
@@ -66,13 +73,14 @@ class WiThrottleViewModel : ViewModel() {
                     _roster.value = rosterItems
                 }
             }
+
             message.startsWith("PPA") -> {
                 val power = message.substring(3) == "1"
                 _status.value = "Connected (Power: ${if (power) "ON" else "OFF"})"
             }
         }
     }
-    
+
     fun sendCommand(cmd: String) {
         viewModelScope.launch {
             client.send(cmd)

@@ -58,11 +58,11 @@ kotlin {
 }
 
 android {
-    namespace = "rocks.breaker.jmri_throttle"
+    namespace = "rocks.breaker.kthrottle"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "rocks.breaker.jmri_throttle"
+        applicationId = "rocks.breaker.kthrottle"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
@@ -90,11 +90,11 @@ dependencies {
 
 compose.desktop {
     application {
-        mainClass = "rocks.breaker.jmri_throttle.MainKt"
+        mainClass = "rocks.breaker.kthrottle.MainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "rocks.breaker.jmri_throttle"
+            packageName = "rocks.breaker.kthrottle"
             packageVersion = "1.0.0"
         }
     }

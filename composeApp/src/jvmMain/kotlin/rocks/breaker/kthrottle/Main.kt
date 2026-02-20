@@ -1,4 +1,4 @@
-package rocks.breaker.jmri_throttle
+package rocks.breaker.kthrottle
 
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
@@ -6,7 +6,7 @@ import androidx.compose.ui.window.application
 fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
-        title = "jmri_throttle",
+        title = "KThrottle",
     ) {
         App()
     }

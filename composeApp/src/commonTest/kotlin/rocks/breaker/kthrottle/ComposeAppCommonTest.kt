@@ -1,4 +1,4 @@
-package rocks.breaker.jmri_throttle
+package rocks.breaker.kthrottle
 
 import kotlin.test.Test
 import kotlin.test.assertEquals

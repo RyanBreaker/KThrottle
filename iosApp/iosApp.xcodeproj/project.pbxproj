@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		2333C884901630AD4CA93636 /* jmri_throttle.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = jmri_throttle.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2333C884901630AD4CA93636 /* KThrottle.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KThrottle.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -59,7 +59,7 @@
 		2276333E58183C58A7D801CA /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				2333C884901630AD4CA93636 /* jmri_throttle.app */,
+				2333C884901630AD4CA93636 /* KThrottle.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -87,7 +87,7 @@
 			packageProductDependencies = (
 			);
 			productName = iosApp;
-			productReference = 2333C884901630AD4CA93636 /* jmri_throttle.app */;
+			productReference = 2333C884901630AD4CA93636 /* KThrottle.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */

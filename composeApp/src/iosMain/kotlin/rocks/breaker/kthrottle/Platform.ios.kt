@@ -1,4 +1,4 @@
-package rocks.breaker.jmri_throttle
+package rocks.breaker.kthrottle
 
 import platform.UIKit.UIDevice
 

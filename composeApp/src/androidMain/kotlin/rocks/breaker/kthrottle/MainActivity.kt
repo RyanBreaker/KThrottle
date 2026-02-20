@@ -1,4 +1,4 @@
-package rocks.breaker.jmri_throttle
+package rocks.breaker.kthrottle
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -18,6 +18,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@Suppress("ktlint:standard:function-naming")
 @Preview
 @Composable
 fun AppAndroidPreview() {

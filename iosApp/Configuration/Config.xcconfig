@@ -1,7 +1,7 @@
 TEAM_ID=
 
-PRODUCT_NAME=jmri_throttle
-PRODUCT_BUNDLE_IDENTIFIER=rocks.breaker.jmri_throttle.jmri_throttle$(TEAM_ID)
+PRODUCT_NAME=KThrottle
+PRODUCT_BUNDLE_IDENTIFIER=rocks.breaker.kthrottle.kthrottle$(TEAM_ID)
 
 CURRENT_PROJECT_VERSION=1
 MARKETING_VERSION=1.0
