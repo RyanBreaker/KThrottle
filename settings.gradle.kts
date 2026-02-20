@@ -1,4 +1,4 @@
-rootProject.name = "kthrottle"
+rootProject.name = "KThrottle"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {

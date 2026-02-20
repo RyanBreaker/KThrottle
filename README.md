@@ -1,4 +1,11 @@
-This is a Kotlin Multiplatform project targeting Android, iOS, Desktop (JVM).
+# KThrottle
+
+An experimental Kotlin Multiplatform (KMP) application targeting Android, iOS, and Desktop for controlling trains with
+[JMRI](https://www.jmri.org) via its [WiThrottle protocol](https://www.jmri.org/help/en/package/jmri/jmrit/withrottle/Protocol.shtml).
+
+This project is still in very early development.
+
+## Compose Docs
 
 * [/composeApp](./composeApp/src) is for code that will be shared across your Compose Multiplatform applications.
   It contains several subfolders:
