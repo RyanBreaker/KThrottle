@@ -50,6 +50,7 @@ fun App(viewModel: WiThrottleViewModel = viewModel { WiThrottleViewModel() }) {
             Text("KThrottle", style = MaterialTheme.typography.headlineMedium)
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Shows connection UI or disconnection button conditionally
             if (!isConnected) {
                 OutlinedTextField(
                     value = host,
@@ -78,6 +79,7 @@ fun App(viewModel: WiThrottleViewModel = viewModel { WiThrottleViewModel() }) {
             Text("Status: ${if (isConnected) "Connected" else "Disconnected"}", style = MaterialTheme.typography.bodyLarge)
             Text("Track Power: $trackStatus", style = MaterialTheme.typography.bodyLarge)
 
+            // Renders locomotive controls when connected
             if (isConnected) {
                 var locoAddress by remember { mutableStateOf("") }
 

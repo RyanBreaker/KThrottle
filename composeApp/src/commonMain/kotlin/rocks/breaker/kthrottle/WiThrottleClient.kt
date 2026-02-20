@@ -1,5 +1,6 @@
 package rocks.breaker.kthrottle
 
+import co.touchlab.kermit.Logger
 import io.ktor.network.selector.SelectorManager
 import io.ktor.network.sockets.Socket
 import io.ktor.network.sockets.aSocket
@@ -11,12 +12,11 @@ import io.ktor.utils.io.readLine
 import io.ktor.utils.io.writeString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
@@ -30,16 +30,16 @@ class WiThrottleClient(
     @OptIn(ExperimentalUuidApi::class)
     val uuid: String = Uuid.random().toString(),
 ) {
-    private val selectorManager = SelectorManager(Dispatchers.Default)
+    private val selectorManager = SelectorManager(Dispatchers.IO)
     private var socket: Socket? = null
     private var readChannel: ByteReadChannel? = null
     private var writeChannel: ByteWriteChannel? = null
 
     private val _isConnected = MutableStateFlow(false)
-    val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
+    val isConnected = _isConnected.asStateFlow()
 
     private val _messages = MutableSharedFlow<String>()
-    val messages: SharedFlow<String> = _messages.asSharedFlow()
+    val messages = _messages.asSharedFlow()
 
     suspend fun connect(host: String, port: Int, deviceName: String = "ComposeMultiThrottle") {
         try {
@@ -63,18 +63,18 @@ class WiThrottleClient(
                     while (isActive) {
                         val line = rc.readLine()?.trim() ?: break
                         if (line.isEmpty()) continue
-                        println("Message: $line")
+                        Logger.d { "Message received: $line" }
                         _messages.emit(line)
                         handleInternalMessage(line)
                     }
                 } catch (e: Exception) {
-                    println("Read error: ${e.message}")
+                    Logger.e(e) { "Read error: ${e.message}" }
                 } finally {
                     disconnect()
                 }
             }
         } catch (e: Exception) {
-            println("Connection error: ${e.message}")
+            Logger.e(e) { "Connection error: ${e.message}" }
             _isConnected.value = false
             throw e
         }
@@ -85,11 +85,11 @@ class WiThrottleClient(
 
     private fun handleInternalMessage(line: String) {
         if (line.startsWith("*")) {
-            heartbeat = Duration.parseOrNull(line.substring(1) + 's') ?: run {
-                println("Invalid heartbeat interval: $line")
+            heartbeat = Duration.parseOrNull("${line.substringAfter("*")}s") ?: run {
+                Logger.w { "Unparseable heartbeat interval given: $line" }
                 return
             }
-            println("Heartbeat interval: $heartbeat")
+            Logger.d { "Setting new heartbeat interval: $heartbeat" }
             heartbeatJob?.cancel()
 
             // If we received a 0, we're disabling the heartbeat
@@ -97,6 +97,7 @@ class WiThrottleClient(
 
             heartbeatJob = scope.launch {
                 while (isActive) {
+                    // Send the heartbeat in half the interval to keep ahead of it
                     delay(heartbeat / 2)
                     send("*")
                 }
@@ -105,7 +106,7 @@ class WiThrottleClient(
     }
 
     suspend fun send(message: String) {
-        println("Sending message: $message")
+        Logger.d { "Sending: $message" }
         writeChannel?.writeString("$message\n")
     }
 

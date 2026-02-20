@@ -2,6 +2,7 @@ package rocks.breaker.kthrottle
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.touchlab.kermit.Logger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -42,7 +43,7 @@ class WiThrottleViewModel : ViewModel() {
             try {
                 client.connect(_host.value, _port.value.toInt())
             } catch (e: Exception) {
-                println("Connection error: ${e.message}")
+                Logger.e(e) { "Connection error: ${e.message}" }
             }
         }
     }
@@ -56,7 +57,7 @@ class WiThrottleViewModel : ViewModel() {
         when {
             message.startsWith("RL") -> {
                 // TODO?
-                println("Roster received")
+                Logger.d { "Roster received" }
             }
 
             message.startsWith("PPA") -> {

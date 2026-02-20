@@ -46,6 +46,7 @@ kotlin {
             implementation(libs.ktor.network)
             implementation(libs.ktor.io)
             implementation(libs.ktor.utils)
+            implementation(libs.kermit)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
