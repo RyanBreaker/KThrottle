@@ -105,17 +105,17 @@ class KThrottleViewModel : ViewModel() {
         val throttle = _throttles.value.getOrNull(parsedMessage.id) ?: return
         val additional = parsedMessage.additional.substring(1)
         when (parsedMessage.additional.first()) {
-            'V' -> {
-                throttle.velocity = additional.substringAfter("V").toInt().coerceIn(-1..126)
-            }
+            // Velocity: V[0-126]
+            'V' -> throttle.velocity = additional.substring(1).toInt().coerceIn(-1..126)
 
-            'R' -> {
-                throttle.direction = Direction.fromString(additional.last())
-            }
+            // Direction: R[0|1]
+            'R' -> throttle.direction = Direction.parse(additional.last())
 
+            // Function: F[0|1][0-31]
             'F' -> {
-                val functionNumber = additional.substring(2).toByte()
-                if (additional[1] == '0') {
+                val isPressed = additional[1] == '0'
+                val functionNumber = additional.substring(2).toInt()
+                if (isPressed) {
                     throttle.pressFunction(functionNumber)
                 } else {
                     throttle.unpressFunction(functionNumber)
