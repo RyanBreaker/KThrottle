@@ -1,6 +1,7 @@
+@file:Suppress("ktlint:standard:function-naming")
+
 package rocks.breaker.kthrottle
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,34 +11,32 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
-@Suppress("ktlint:standard:function-naming")
 @Composable
 @Preview
-fun App(viewModel: WiThrottleViewModel = viewModel { WiThrottleViewModel() }) {
+fun App(viewModel: KThrottleViewModel = viewModel { KThrottleViewModel() }) {
     MaterialTheme {
         val isConnected by viewModel.isConnected.collectAsState()
         val host by viewModel.host.collectAsState()
         val port by viewModel.port.collectAsState()
-        val roster by viewModel.roster.collectAsState()
         val trackStatus by viewModel.trackStatus.collectAsState()
 
         Column(
@@ -50,83 +49,115 @@ fun App(viewModel: WiThrottleViewModel = viewModel { WiThrottleViewModel() }) {
             Text("KThrottle", style = MaterialTheme.typography.headlineMedium)
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Shows connection UI or disconnection button conditionally
             if (!isConnected) {
-                OutlinedTextField(
-                    value = host,
-                    onValueChange = { viewModel.setHost(it) },
-                    label = { Text("Host") },
-                    modifier = Modifier.fillMaxWidth(),
+                ConnectionScreen(
+                    host = host,
+                    port = port,
+                    onHostChange = viewModel::setHost,
+                    onPortChange = viewModel::setPort,
+                    onConnect = viewModel::connect,
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = port,
-                    onValueChange = { viewModel.setPort(it) },
-                    label = { Text("Port") },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(onClick = { viewModel.connect() }) {
-                    Text("Connect")
-                }
             } else {
-                Button(onClick = { viewModel.disconnect() }) {
-                    Text("Disconnect")
+                ConnectedScreen(
+                    trackStatus,
+                    onDisconnect = viewModel::disconnect,
+                    onSendCommand = viewModel::sendCommand,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ConnectionScreen(
+    host: String,
+    port: String,
+    onHostChange: (String) -> Unit,
+    onPortChange: (String) -> Unit,
+    onConnect: () -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        OutlinedTextField(
+            value = host,
+            onValueChange = onHostChange,
+            label = { Text("Host") },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = port,
+            onValueChange = onPortChange,
+            label = { Text("Port") },
+            modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = onConnect) {
+            Text("Connect")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text("Status: Disconnected", style = MaterialTheme.typography.bodyLarge)
+    }
+}
+
+@Composable
+fun ConnectedScreen(
+    trackStatus: String,
+    onDisconnect: () -> Unit,
+    onSendCommand: (String) -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Button(onClick = onDisconnect) {
+            Text("Disconnect")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text("Status: Connected", style = MaterialTheme.typography.bodyLarge)
+        Text("Track Power: $trackStatus", style = MaterialTheme.typography.bodyLarge)
+
+        var locoAddress by remember { mutableStateOf("") }
+        val addressType by remember {
+            derivedStateOf {
+                val addressInt = locoAddress.toIntOrNull()
+                when {
+                    addressInt == null -> ""
+                    addressInt > 127 -> "L"
+                    else -> "S"
                 }
             }
+        }
 
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("Status: ${if (isConnected) "Connected" else "Disconnected"}", style = MaterialTheme.typography.bodyLarge)
-            Text("Track Power: $trackStatus", style = MaterialTheme.typography.bodyLarge)
-
-            // Renders locomotive controls when connected
-            if (isConnected) {
-                var locoAddress by remember { mutableStateOf("") }
-
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    OutlinedTextField(
-                        value = locoAddress,
-                        onValueChange = { locoAddress = it },
-                        label = { Text("Loco Address") },
-                        modifier = Modifier.weight(1f),
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Button(onClick = {
-                        if (locoAddress.isNotEmpty()) {
-                            viewModel.sendCommand("M0+L$locoAddress<;>L$locoAddress")
-                            locoAddress = ""
-                        }
-                    }) {
-                        Text("Add")
-                    }
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            OutlinedTextField(
+                value = locoAddress,
+                onValueChange = { locoAddress = it.filter(Char::isDigit).take(4) },
+                label = { Text("Loco Address") },
+                modifier = Modifier.weight(1f),
+                trailingIcon = { Text(addressType) },
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Button(onClick = {
+                if (locoAddress.isNotEmpty()) {
+                    onSendCommand("M0+$addressType$locoAddress<;>$addressType$locoAddress")
+                    locoAddress = ""
                 }
+            }) {
+                Text("Add")
+            }
 
-                Spacer(modifier = Modifier.height(16.dp))
-                Text("Locomotive Roster", style = MaterialTheme.typography.titleMedium)
-                LazyColumn(
-                    modifier = Modifier.weight(1f).fillMaxWidth(),
-                ) {
-                    items(roster) { locomotive ->
-                        Card(
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                            onClick = { /* Select loco */ },
-                        ) {
-                            Text(locomotive, modifier = Modifier.padding(8.dp))
-                        }
-                    }
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                ) {
-                    Button(onClick = { viewModel.sendCommand("PPA1") }) { Text("Power ON") }
-                    Button(onClick = { viewModel.sendCommand("PPA0") }) { Text("Power OFF") }
-                }
+            Button(
+                onClick = { onSendCommand("M0AL6767<;>F15") },
+            ) {
+                Text("F5")
             }
         }
     }
