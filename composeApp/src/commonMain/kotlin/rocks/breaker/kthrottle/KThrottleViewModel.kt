@@ -13,21 +13,25 @@ class KThrottleViewModel : ViewModel() {
     data class ParsedThrottleMessage(
         val id: Int,
         val command: String,
+        val address: String,
         val additional: String,
     )
 
     object ThrottleMessageParsing {
         private const val ID = "id"
         private const val COMMAND = "command"
+        private const val ADDRESS = "address"
         private const val ADDITIONAL = "additional"
-        val regex = Regex("""^M(?<$ID>\d)(?<$COMMAND>[A+\-S])<;>(?<$ADDITIONAL>.*)""")
+
+        val regex = Regex("""^M(?<$ID>\d)(?<$COMMAND>[A+\-S])(?<$ADDRESS>[SL]\d{1,4})<;>(?<$ADDITIONAL>.*)$""")
 
         fun parse(message: String): ParsedThrottleMessage? {
             val groups = regex.matchEntire(message)?.groups ?: return null
             val id = groups[ID]?.value?.toIntOrNull() ?: return null
             val command = groups[COMMAND]?.value ?: return null
+            val address = groups[ADDRESS]?.value ?: return null
             val additional = groups[ADDITIONAL]?.value ?: return null
-            return ParsedThrottleMessage(id, command, additional)
+            return ParsedThrottleMessage(id, command, address, additional)
         }
     }
 
@@ -44,8 +48,11 @@ class KThrottleViewModel : ViewModel() {
     private val _trackStatus = MutableStateFlow("Unknown")
     val trackStatus = _trackStatus.asStateFlow()
 
-    private val _throttles = MutableStateFlow<List<Throttle>>(emptyList())
+    private val _throttles = MutableStateFlow<List<Throttle?>>(List(9) { null })
     val throttles = _throttles.asStateFlow()
+
+    private val _selectedThrottleId = MutableStateFlow(0)
+    val selectedThrottleId = _selectedThrottleId.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -103,7 +110,9 @@ class KThrottleViewModel : ViewModel() {
         }
 
         val throttle = _throttles.value.getOrNull(parsedMessage.id) ?: return
-        val additional = parsedMessage.additional.substring(1)
+        val additional = parsedMessage.additional
+        if (additional.isEmpty()) return
+
         when (parsedMessage.additional.first()) {
             // Velocity: V[0-126]
             'V' -> throttle.velocity = additional.substring(1).toInt().coerceIn(-1..126)
@@ -113,7 +122,7 @@ class KThrottleViewModel : ViewModel() {
 
             // Function: F[0|1][0-31]
             'F' -> {
-                val isPressed = additional[1] == '0'
+                val isPressed = additional[1] == '1'
                 val functionNumber = additional.substring(2).toInt()
                 if (isPressed) {
                     throttle.pressFunction(functionNumber)
@@ -121,6 +130,36 @@ class KThrottleViewModel : ViewModel() {
                     throttle.unpressFunction(functionNumber)
                 }
             }
+        }
+    }
+
+    fun addThrottle(id: Int, address: Int) {
+        val currentThrottles = _throttles.value.toMutableList()
+        if (id in 0..8 && currentThrottles[id] == null) {
+            val throttle = Throttle(address)
+            currentThrottles[id] = throttle
+            _throttles.value = currentThrottles
+            _selectedThrottleId.value = id
+
+            val addressType = throttle.addressType
+            sendCommand("M$id+$addressType$address<;>$addressType$address")
+        }
+    }
+
+    fun removeThrottle(id: Int) {
+        val currentThrottles = _throttles.value.toMutableList()
+        val throttle = currentThrottles[id]
+        if (throttle != null) {
+            val addressType = throttle.addressType
+            sendCommand("M$id-$addressType${throttle.address}<;>r")
+            currentThrottles[id] = null
+            _throttles.value = currentThrottles
+        }
+    }
+
+    fun selectThrottle(id: Int) {
+        if (id in 0..8) {
+            _selectedThrottleId.value = id
         }
     }
 

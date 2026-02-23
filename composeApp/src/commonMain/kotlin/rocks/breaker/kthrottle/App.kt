@@ -27,6 +27,8 @@ fun App(viewModel: KThrottleViewModel = viewModel { KThrottleViewModel() }) {
         val host by viewModel.host.collectAsState()
         val port by viewModel.port.collectAsState()
         val trackStatus by viewModel.trackStatus.collectAsState()
+        val throttles by viewModel.throttles.collectAsState()
+        val selectedThrottleId by viewModel.selectedThrottleId.collectAsState()
 
         Column(
             modifier = Modifier
@@ -49,6 +51,11 @@ fun App(viewModel: KThrottleViewModel = viewModel { KThrottleViewModel() }) {
             } else {
                 ConnectedScreen(
                     trackStatus,
+                    throttles = throttles,
+                    selectedThrottleId = selectedThrottleId,
+                    onSelectThrottle = viewModel::selectThrottle,
+                    onAddThrottle = viewModel::addThrottle,
+                    onRemoveThrottle = viewModel::removeThrottle,
                     onDisconnect = viewModel::disconnect,
                     onSendCommand = viewModel::sendCommand,
                 )
